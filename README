@@ -1,0 +1,299 @@
+                                  CLUE v0.6
+                                  =========
+
+                          (C) 2008-2013 David Given
+                                 2013-03-14
+
+
+INTRODUCTION
+============
+
+Clue is an experimental C compiler for Lua, Javascript, Perl, Common Lisp,
+Java, and C. It compiles, eventually, ANSI C programs into a form which may
+be run on a standard runtime for any of these languages.
+
+Clue is EXPERIMENTAL and UNFINISHED. It is not suitable for any kind of
+production use. There are a number of C language features that are not
+implemented yet, and it produces rather bad code. However, it will compile
+a large number of non-trivial programs.
+
+
+
+INSTALLATION
+============
+
+Installation is unfortunately rather involved and will only work on Unix-like
+systems. I develop on Linux. You *may* be able to make it all work on Cygwin
+but you're on your own. Sorry.
+
+TO RUN PROGRAMS BUILT WITH THE LUA51 BACK END:
+   ...you will need a Lua 5.1.3 interpreter (such as the stock Lua or Mike
+   Pall's LuaJIT) with the LuaSocket and BitLib modules installed.
+
+TO RUN PROGRAMS BUILT WITH THE LUA52 BACK END:
+   ...you will need a Lua 5.2 interpreter (such as the stock Lua or Mike
+   Pall's LuaJIT) with the LuaSocket module installed.
+
+TO RUN PROGRAMS BUILT WITH THE JAVASCRIPT BACK END:
+   ...you will need Node.
+
+TO RUN PROGRAMS BUILT WITH THE PERL5 BACK END:
+   ...you will need a Perl 5 interpreter with the Time::Hires module (which
+   is normally installed automatically).
+
+TO RUN PROGRAMS BUILT WITH THE COMMON LISP BACK END:
+   ...you will need a copy of the SBCL Common Lisp environment. It may or
+   may not work with other Common Lisp systems.
+   ...thanks to Peter Maydell (http://sourceforge.net/users/pm215) for
+   contributing this.
+   
+TO RUN PROGRAMS BUILT WITH THE C BACK END:
+   ...you will need a C toolchain --- but then if you can build Clue, you
+   will already have one.
+
+TO RUN PROGRAMS BUILT WITH THE JAVA BACK END:
+   ...you will need a JDK. Clue generates class files by producing Java source
+   code and compiling it, so you'll need a javac as well as a java interpreter.
+   I develop with the official Sun Java 6 distribution.
+         
+TO BUILD THE COMPILER:
+   
+1. Fetch sparse 0.4.1 from here:
+
+     http://www.kernel.org/pub/software/devel/sparse/
+
+   Apply the supplied sparse.patch file, compile it, and install it.    
+
+2. Edit the supplied pmfile and change the section at the top to point
+   at where you installed sparse's headers and libraries.
+   
+3. Do:
+
+     ./pm
+
+   Clue will then build the compiler and the modified Lua interpreter that's
+   used as an assembler.
+   
+Clue is currently not designed to be installed anywhere; it should be run from
+the place where you built it. I did warn you it was experimental...
+
+
+
+USAGE
+=====
+
+You may compile a C program as follows:
+
+	bin/clue -m<backend> test/helloworld.c > output.<extension>
+	
+<backend> may be lua51, lua52, js, perl5, java or c.
+   
+This will read in the source file, compile it and write out the result.
+
+Once you have a runnable result, you may run it with the cluerun tool. This
+sets up the run-time environment needed to run Clue code.
+
+    ./cluerun -f output.lua
+or  ./cluerun -f output.js
+or  ./cluerun -f output.pl
+or  ./cluerun -f output.lisp
+or  ./cluerun -f output.j
+or  ./cluerun -f output.c
+
+By default, cluerun will try to use LuaJIT for .lua files, SpiderMonkey
+for .js files and Perl 5 for .pl files. You can change this with the -e
+option, which may have one of the following values:
+
+    lua51        standard Lua interpreter (version 5.1)
+    lua52        standard Lua interpreter (version 5.2)
+    luajit2-jon  Mike Pall's LuaJIT in JIT mode
+    js           Node V8 Javascript interpreter
+    perl5        Perl 5 interpreter
+    lisp         SBCL Common Lisp interpreter
+    j            standard Java compiler and interpreter
+    c            C compiler via gcc
+
+You can pass arguments to the Clue program by suffixing cluerun with a --.
+
+    ./cluerun -e js -f output.js -- arg1 arg2 arg3
+
+You may use multiple files --- all of the same type, of course --- and they
+will get linked together and main() run.
+
+    ./cluerun -e js -f file1.js -f file2.js -f file3.js -- arg1 arg2 arg3   
+
+This works to a certain extent (it's used by the benchmarks), but is still a
+bit problematic. (sparse has some bugs that cause prototyping symbols to
+sometimes not work correctly.)
+
+
+
+BENCHMARKING
+============
+
+Clue is complete enough to run a number of benchmarks. These are located
+in the test directory.
+
+Most of the benchmarks are taken from the Computer Language Benchmark
+Game (neé the Great Computer Language Shootout), located here:
+
+    http://shootout.alioth.debian.org/
+    
+The CLBG benchmarks can be run en mass using the supplied run-benchmarks
+script. It will run each benchmark using gcc, clue via a Lua interpreter,
+and clue via LuaJIT (if you have it). (Note that the script does *not*
+use the same number of iterations as the CLBG uses, as I'm not getting
+any younger.) However, the CLBG benchmarks are very inaccurate and they
+should be considered unit tests only.
+
+Also supplied is a version of the very elderly Whetstone benchmark. This
+can be run as a normal program.
+
+See README.benchmarks for the results I get on my machine.
+
+
+
+WRITING PROGRAMS WITH CLUE
+==========================
+
+Clue supports standard ANSI C (C89, some C99, some bugs). Unfortunately,
+most programmers don't! There are a number of places where Clue behaves
+very differently to normal C compilers, 
+
+- you may not cast any kind of pointer to a number, or vice
+  versa (except for the special case of constant 0, which may be
+  cast to any kind of pointer).
+  
+- you may not cast function pointers to object pointers or vice
+  versa.
+ 
+- accessing memory via the wrong kind of pointer is not supported. This
+  means you can't do this:
+  
+  {
+    void* p = &fnord;
+    return *(int*)p;
+  }
+  
+  You *can* use unions to store two objects of different types at the same
+  memory location --- but accessing the wrong one will probably produce a
+  runtime error.
+  
+- sizeof(char) == sizeof(int) == sizeof(long) == sizeof(void(*)()) == 1.
+  sizeof(void*) == 2.
+
+- trying to operate on uninitialised memory will most likely produce a
+  runtime error (as it will probably be initialised to something that you
+  can't do things like arithmetic operations on). 
+
+- the libc is *very* terse. I implemented only those functions necessary
+  to make the benchmarks work.
+
+Violating any of these will sometimes produce a compile-time error but
+mostly you'll get a really, really strange run-time error.
+
+
+
+BUGS
+====
+
+Hahahaha! Hahahahahaha! Haha!
+
+Okay, there are some bugs. Did I mention this was experimental?
+
+The ones I've actually noticed include, but are not limited to:
+
+Compiler bugs:
+
+- inline doesn't work.
+
+- Multiple declarations of items doesn't work. (This is a sparse bug.)
+
+- sparse can't always distinguish between different scalar types of the same
+  size, which means that backends can't distinguish between reals and integers;
+  this usually manifests itself in parameters being passed to functions in the
+  wrong register. This means that backends must use the same type to represent
+  both reals and integers, which prevents certain optimisations in c and java.
+  (This is a sparse bug.)
+  
+- Various compiler features aren't implemented yet, like switch or varargs.
+
+Libc bugs:
+
+- stdio can only read or write text on Lua; this causes clbg-mandelbrot to
+  produce invalid data when run using clue.
+  
+- printf is very basic and doesn't properly implement the printf spec
+  (different on each platform).
+  
+- the Common Lisp libc is only partially implemented, which means that the
+  benchmarks aren't run for it. 
+
+There are others. Oh, yes, there are others.
+  
+
+
+TODO
+====
+
+There are a number of ways to take Clue further.
+
+- Add more targets. I'd like the Java target to emit bytecode; that way we
+  get a real goto implementation, which should boost performance. There's
+  also an experimental Common Lisp target that was contributed that needs a
+  libc to be useful. 
+   
+- Finish the language coverage. There are a number of C language features
+  that I haven't gotten around to doing (like switch).  
+
+
+LICENSING
+=========
+
+Different parts of the supplied source are covered by different licenses.
+
+test/clbg-*.c are very slightly tweaked (mostly changing %ld to %d in
+format strings) versions of the Computer Language Benchmark Game
+benchmarks. See http://shootout.alioth.debian.org. These are covered by the
+Revised BSD license. See
+http://shootout.alioth.debian.org/gp4/miscfile.php?file=license&title=revised%20BSD%20license
+for the text.
+
+test/whetstone.c is a hacked copy of one of the million or so Whetstone
+variations dating from the 1980s. It is, I believe, public domain. If anyone
+has more information, please get in touch.
+
+src/clue/cg-lisp.c and src/lisp was contributed by Peter Maydell. It is
+covered by the Revised BSD license (text below).
+
+Practically everything else was written by me, David Given, and is covered by
+the Revised BSD license. The text follows:
+
+Copyright (c) 2008, David Given
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions
+are met:
+
+    * Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright
+      notice, this list of conditions and the following disclaimer in
+      the documentation and/or other materials provided with the distribution.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE 
+LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
+CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
+SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
+INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
+CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
+ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+POSSIBILITY OF SUCH DAMAGE.
+
+# $Id: README 87 2013-03-14 22:59:16Z dtrg $
+# $HeadURL: https://cluecc.svn.sourceforge.net/svnroot/cluecc/clue/README $
+# $LastChangedDate: 2008-07-19 23:13:17 +0100 (Sat, 19 Jul 2008) $

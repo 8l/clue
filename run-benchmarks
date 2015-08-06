@@ -1,0 +1,82 @@
+#!/usr/bin/lua
+-- Clue build script
+--
+-- © 2006 David Given.
+-- Clue is licensed under the Revised BSD open source license. To get the
+-- full license text, see the README file.
+--
+-- $Id: run-benchmarks 84 2013-03-14 22:44:13Z dtrg $
+-- $HeadURL: https://cluecc.svn.sourceforge.net/svnroot/cluecc/clue/run-benchmarks $
+-- $LastChangedDate: 2008-09-07 00:17:01 +0100 (Sun, 07 Sep 2008) $
+
+require "socket"
+
+local benchdata = {
+	{"clbg-binary-trees",              11},
+	{"clbg-mandelbrot",                750},
+	{"clbg-partialsums",               250000},
+	{"clbg-fannkuch",                  8},
+	{"clbg-recursive",                 6},
+	{"clbg-n-body",                    60000},
+	{"clbg-nsieve",                    7}
+}
+
+local function exec(s)
+	io.stderr:write("$ ", s, "\n")
+	local i = os.execute(s)
+	if (i ~= 0) then
+		os.exit(0)
+	end
+end
+
+local function pn(n)
+	return string.format("% 8.3f", n)
+end
+
+local function time(cmd)
+	local elapsed = 0
+	io.stderr:write("$ ", cmd, "\n")
+	local fp = io.popen(cmd)
+	for i in fp:lines() do
+--		io.stderr:write("> ", i, "\n")
+		local _, _, t = i:find("^ELAPSEDTIME=(.*)$")
+		if t then
+			elapsed = t
+		end
+	end
+	fp:close()
+	return elapsed;
+end
+
+local function benchmark(engine, cg, extension, testname, gcctime, arg)
+	exec("./bin/clue -m"..cg.." test/clbg.c > /tmp/clbg."..extension)
+	exec("./bin/clue -m"..cg.." test/"..testname..".c > /tmp/benchmark."..extension)
+	
+	local t = time("./cluerun -e "..engine.." -f /tmp/clbg."..extension..
+		" -f /tmp/benchmark."..extension.." -- "..arg)
+	
+	if not gcctime then
+		gcctime = t
+	end
+	
+	print(engine..":", pn(t), pn(t / gcctime))
+end
+	
+print("", "", "", "time", "comparison factor")
+for i = 1, #benchdata do
+	local name, arg = unpack(benchdata[i])
+	print("\n"..name..":")
+	exec("gcc test/clbg.c test/"..name..".c -o /tmp/benchmark -Os -lm")
+
+	local gcctime = time("/tmp/benchmark "..arg)
+	print("gcc:", pn(gcctime), pn(1.0))
+
+	benchmark("c", "c", "c", name, gcctime, arg)
+	benchmark("java", "java", "j", name, gcctime, arg)
+	benchmark("lua51", "lua51", "lua", name, gcctime, arg)
+	benchmark("lua52", "lua52", "lua", name, gcctime, arg)
+	benchmark("luajit2-jon", "lua52", "lua", name, gcctime, arg)
+	benchmark("luajit2-joff", "lua52", "lua", name, gcctime, arg)
+	benchmark("js", "js", "js", name, gcctime, arg)
+	benchmark("perl5", "perl5", "perl5", name, gcctime, arg)
+end

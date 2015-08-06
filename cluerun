@@ -1,0 +1,218 @@
+#!/bin/sh
+# Clue runtime loader
+#
+# © 2008 David Given.
+# Clue is licensed under the Revised BSD open source license. To get the
+# full license text, see the README file.
+#
+# $Id: cluerun 84 2013-03-14 22:44:13Z dtrg $
+# $HeadURL: https://cluecc.svn.sourceforge.net/svnroot/cluecc/clue/cluerun $
+# $LastChangedDate: 2008-09-07 12:39:58 +0100 (Sun, 07 Sep 2008) $
+
+set -e
+
+TEMPFILE=`mktemp`
+TEMPDIR=$TEMPFILE.dir
+mkdir $TEMPDIR
+trap "echo rm -fr $TEMPFILE $TEMPDIR" 0
+
+LUAJIT2BIN="luajit"
+
+validate_engine() {
+	case "$1" in
+		lua51)
+			which lua5.1 > /dev/null
+			return $?
+			;;
+			
+		lua52)
+			which lua5.2 > /dev/null
+			return $?
+			;;
+			
+		luajit2-jon)
+			which $LUAJIT2BIN > /dev/null
+			return $?
+			;;
+			
+		luajit2-joff)
+			which $LUAJIT2BIN > /dev/null
+			return $?
+			;;
+			
+		js)
+			which js > /dev/null
+			return $?
+			;;
+			
+		rhino)
+			which rhino > /dev/null
+			return $?
+			;;
+			
+		c)
+			which gcc > /dev/null
+			return $?
+			;;
+			
+		perl5)
+			which perl > /dev/null
+			return $?
+			;;
+
+		sbcl)
+			which sbcl > /dev/null
+			return $?
+			;;
+
+		java)
+			(which java && which javac) > /dev/null
+			return $?
+			;;
+	esac
+	
+	return 1
+}
+
+execute_engine() {
+	case "$1" in
+		lua51)
+			exec lua5.1 src/lua/run.lua -- "$@"
+			;;
+			
+		lua52)
+			exec lua5.2 src/lua/run.lua -- "$@"
+			;;
+			
+		luajit2-jon)
+			exec $LUAJIT2BIN -jon src/lua/run.lua -- "$@"
+			;;
+			
+		luajit2-joff)
+			exec $LUAJIT2BIN -joff src/lua/run.lua -- "$@"
+			;;
+			
+		js)
+			exec js src/javascript/run.js "$@"
+			;;
+			
+		rhino)
+			exec rhino src/javascript/run.js "$@"
+			;;
+			
+		perl5)
+			exec perl src/perl5/run.pl "$@"
+			;;
+			
+		c)
+			shift
+			infiles=
+			while [ "$1" != "--" ]; do
+				infiles="$infiles $1"
+				shift
+			done
+			
+			gcc --std=c99 -g -Os -I src/c $infiles src/c/crt.c src/c/libc.c -lm -o $TEMPFILE
+
+			shift
+			shift
+			exec $TEMPFILE "$@"
+			;;			
+
+		java)
+			shift
+			infiles=
+			while [ "$1" != "--" ]; do
+				infiles="$infiles $1"
+				shift
+			done
+
+			cat src/java/_header.j $infiles src/java/_footer.j > $TEMPDIR/program.java
+			javac -d $TEMPDIR $TEMPDIR/program.java src/java/ClueRuntime.java
+
+			shift
+			shift
+			echo exec java -server -cp $TEMPDIR ClueProgram -- "$@"
+			exec java -server -cp $TEMPDIR ClueProgram -- "$@"
+			;;
+
+		sbcl)
+			exec sbcl --noinform --load src/lisp/run.lisp --no-userinit --end-toplevel-options "$@"
+			;;
+	esac
+	
+	echo "cluerun: unknown engine $1" 1>&2
+	exit 1
+}
+
+inputfiles=
+engine=
+while [ "$1" != "" ]; do
+	case "$1" in
+		-h|--help)
+			echo "cluerun: no help yet." 1>&2
+			exit 1
+			;;
+			
+		-f|--file)
+			inputfiles="$inputfiles $2"
+			shift
+			;;
+			
+		-e|--engine)
+			engine="$2"
+			shift
+			;;
+			
+		--)
+			shift
+			break
+			;;
+			
+		*)
+			echo "cluerun: unrecognised option $1" 1>&2
+			exit 1
+			;;
+	esac
+	shift 
+done
+
+if [ "$engine" = "" ]; then
+	case "$inputfiles" in
+		*.lua)
+			engine=lua51
+			;;
+			
+		*.js)
+			engine=smjs
+			;;
+			
+		*.pl)
+			engine=perl5
+			;;
+		
+		*.c)
+			engine=c
+			;;
+			
+		*.lisp)
+			engine=sbcl
+			;;
+			
+		*.j)
+			engine=java
+			;;
+
+		*)
+			echo "cluerun: unable to guess engine type; try -e" 1>&2
+			exit 1
+			;;
+	esac
+fi
+
+if ! validate_engine $engine; then
+	echo "cluerun: engine '$engine' doesn't seem to be available" 1>&2
+	exit 1
+fi
+
+execute_engine $engine $inputfiles -- clue "$@"

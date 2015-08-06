@@ -1,0 +1,77 @@
+#!/bin/sh
+# Simple script to regenerate the README.benchmarks file.
+# 
+# © 2008 David Given.
+# Clue is licensed under the Revised BSD open source license. To get the
+# full license text, see the README file.
+#
+# $Id: regenerate-benchmark-report 84 2013-03-14 22:44:13Z dtrg $
+# $HeadURL: https://cluecc.svn.sourceforge.net/svnroot/cluecc/clue/regenerate-benchmark-report $
+# $LastChangedDate: 2008-07-08 13:46:21 +0100 (Tue, 08 Jul 2008) $
+
+set -e
+
+
+cat << EOF
+These are the benchmark results that are produced by my computer.
+
+The Computer Language Benchmark Game benchmarks. These should be considered
+unit tests only --- the numbers are not indicative of anything in particular.
+The time column indicates the absolute time in seconds; the comparison
+factor indicates the time taken as a multiple of the time gcc took. So
+1 means the same time, 2 means twice as long, etc. Times include working time
+only, and not load and startup time, which would be considerable for some
+targets (such as c, which involves compiling the target program with gcc).
+
+
+---snip---
+EOF
+
+#./run-benchmarks
+
+cat << EOF
+---snip---
+
+
+The Whetstone benchmark:
+
+This is run against each target, and the results included below.
+
+gcc:
+
+---snip---
+EOF
+
+gcc -Os test/whetstone.c -o /tmp/benchmark -lm
+#/tmp/benchmark
+
+runbenchmark()
+{
+	cat <<- EOF
+		---snip---
+		
+		$1:
+		
+		---snip---
+	EOF
+	
+	bin/clue -m$2 test/whetstone.c > /tmp/$4
+	./cluerun -e $3 -f /tmp/$4
+}
+
+#runbenchmark "C via Clue" c c benchmark.c
+#runbenchmark "Java" java java benchmark.j
+#runbenchmark "Lua 5.1" lua51 lua51 benchmark.lua
+#runbenchmark "Lua 5.2" lua52 lua52 benchmark.lua
+#runbenchmark "Lua 5.2 luajit2-jon" lua52 luajit2-jon benchmark.lua
+#runbenchmark "Lua 5.2 luajit2-joff" lua52 luajit2-joff benchmark.lua
+#runbenchmark "Node Javascript" js js benchmark.js
+runbenchmark "Perl" perl5 perl5 benchmark.pl
+
+cat << EOF
+---snip---
+
+# \$Id: README.benchmarks 7 2008-07-10 22:17:44Z dtrg \$
+# \$HeadURL: https://cluecc.svn.sourceforge.net/svnroot/cluecc/clue/README.benchmarks \$
+# \$LastChangedDate: 2008-07-10 23:17:44 +0100 (Thu, 10 Jul 2008) \$
+EOF

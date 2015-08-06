@@ -1,0 +1,350 @@
+These are the benchmark results that are produced by my computer.
+
+The Computer Language Benchmark Game benchmarks. These should be considered
+unit tests only --- the numbers are not indicative of anything in particular.
+The time column indicates the absolute time in seconds; the comparison
+factor indicates the time taken as a multiple of the time gcc took. So
+1 means the same time, 2 means twice as long, etc. Times include working time
+only, and not load and startup time, which would be considerable for some
+targets (such as c, which involves compiling the target program with gcc).
+
+
+---snip---
+			time	comparison factor
+clbg-binary-trees:
+gcc:	   0.021	   1.000
+c:	   0.038	   1.826
+java:	   0.209	  10.076
+lua51:	   1.559	  75.181
+lua52:	   1.444	  69.612
+luajit2-jon:	   0.310	  14.953
+luajit2-joff:	   0.601	  28.999
+js:	   0.863	  41.606
+perl5:	   5.549	 267.512
+
+clbg-mandelbrot:
+gcc:	   0.098	   1.000
+c:	   0.149	   1.514
+java:	   1.011	  10.299
+lua51:	  11.050	 112.566
+lua52:	   6.454	  65.749
+luajit2-jon:	   0.376	   3.835
+luajit2-joff:	   3.487	  35.520
+js:	   4.281	  43.610
+perl5:	  42.619	 434.153
+
+clbg-partialsums:
+gcc:	   0.074	   1.000
+c:	   0.073	   0.984
+java:	   0.238	   3.207
+lua51:	   1.399	  18.853
+lua52:	   0.556	   7.488
+luajit2-jon:	   0.068	   0.920
+luajit2-joff:	   0.276	   3.721
+js:	   0.650	   8.760
+perl5:	   8.421	 113.482
+
+clbg-fannkuch:
+gcc:	   0.007	   1.000
+c:	   0.007	   0.936
+java:	   0.103	  13.746
+lua51:	   0.840	 112.050
+lua52:	   0.194	  25.896
+luajit2-jon:	   0.026	   3.445
+luajit2-joff:	   0.105	  14.002
+js:	   0.108	  14.413
+perl5:	   4.094	 546.405
+
+clbg-recursive:
+gcc:	   0.059	   1.000
+c:	   0.057	   0.961
+java:	   0.254	   4.305
+lua51:	   3.465	  58.720
+lua52:	   2.126	  36.025
+luajit2-jon:	   0.259	   4.393
+luajit2-joff:	   0.993	  16.825
+js:	   2.346	  39.757
+perl5:	  22.002	 372.857
+
+clbg-n-body:
+gcc:	   0.035	   1.000
+c:	   0.045	   1.278
+java:	   0.085	   2.399
+lua51:	   1.215	  34.301
+lua52:	   1.021	  28.827
+luajit2-jon:	   0.092	   2.596
+luajit2-joff:	   0.549	  15.509
+js:	   0.582	  16.429
+perl5:	   6.486	 183.087
+
+clbg-nsieve:
+gcc:	   0.034	   1.000
+c:	   0.087	   2.548
+java:	   0.245	   7.178
+lua51:	   2.883	  84.455
+lua52:	   1.507	  44.150
+luajit2-jon:	   0.117	   3.434
+luajit2-joff:	   0.684	  20.045
+js:	   0.480	  14.063
+perl5:	   3.795	 111.175
+---snip---
+
+
+The Whetstone benchmark:
+
+This is run against each target, and the results included below.
+
+gcc:
+
+---snip---
+Calibrate
+       0.01 Seconds          1   Passes (x 100)
+       0.02 Seconds          5   Passes (x 100)
+       0.10 Seconds         25   Passes (x 100)
+       0.50 Seconds        125   Passes (x 100)
+       2.48 Seconds        625   Passes (x 100)
+
+Use 3000  passes (x 100)
+
+          C/C++ Whetstone Benchmark
+
+Loop content                  Result              MFLOPS      MOPS   Seconds
+
+N1 floating point     -1.12398255667391900       986.349              0.058
+N2 floating point     -1.12187079889284425       736.276              0.548
+N3 if then else        1.00000000000000000                2402.152    0.129
+N4 fixed point        12.00000000000000000                9615.972    0.098
+N5 sin,cos etc.        0.49902937281518261                  81.732    3.054
+N6 floating point      0.99999987890802811       369.318              4.382
+N7 assignments         3.00000000000000000                 735.431    0.754
+N8 exp,sqrt etc.       0.75100163018458665                  40.022    2.788
+
+MWIPS                                           2539.933             11.811
+
+---snip---
+
+C via Clue:
+
+---snip---
+Calibrate
+       0.02 Seconds          1   Passes (x 100)
+       0.02 Seconds          5   Passes (x 100)
+       0.11 Seconds         25   Passes (x 100)
+       0.54 Seconds        125   Passes (x 100)
+       2.66 Seconds        625   Passes (x 100)
+
+Use 3000  passes (x 100)
+
+          C/C++ Whetstone Benchmark
+
+Loop content                  Result              MFLOPS      MOPS   Seconds
+
+N1 floating point     -1.13333333333333330       820.362              0.070
+N2 floating point     -1.13333333333333330       734.474              0.549
+N3 if then else        1.00000000000000000                1068.633    0.291
+N4 fixed point        12.00000000000000000                2004.037    0.472
+N5 sin,cos etc.        0.50000000000000000                 104.232    2.395
+N6 floating point      1.00000000000000000       380.823              4.249
+N7 assignments         3.00000000000000000                 299.660    1.850
+N8 exp,sqrt etc.       0.75000000000000000                  38.967    2.864
+
+MWIPS                                           2354.933             12.739
+
+---snip---
+
+Java:
+
+---snip---
+exec java -server -cp /tmp/tmp.sPyF9XFtcA.dir ClueProgram --
+Calibrate
+       0.13 Seconds          1   Passes (x 100)
+       0.29 Seconds          5   Passes (x 100)
+       0.32 Seconds         25   Passes (x 100)
+       1.62 Seconds        125   Passes (x 100)
+       7.95 Seconds        625   Passes (x 100)
+
+Use 3000  passes (x 100)
+
+          C/C++ Whetstone Benchmark
+
+Loop content                  Result              MFLOPS      MOPS   Seconds
+
+N1 floating point     -1.13333333333333330       442.396              0.130
+N2 floating point     -1.13333333333333330       511.675              0.788
+N3 if then else        1.00000000000000000                  74.443    4.171
+N4 fixed point        12.00000000000000000                 348.451    2.712
+N5 sin,cos etc.        0.50000000000000000                  47.068    5.303
+N6 floating point      1.00000000000000000       122.526             13.207
+N7 assignments         3.00000000000000000                  72.880    7.607
+N8 exp,sqrt etc.       0.75000000000000000                  26.496    4.212
+
+MWIPS                                            786.778             38.130
+
+---snip---
+
+Lua 5.1:
+
+---snip---
+Calibrate
+       0.37 Seconds          1   Passes (x 100)
+       1.75 Seconds          5   Passes (x 100)
+       8.20 Seconds         25   Passes (x 100)
+
+Use 304  passes (x 100)
+
+          C/C++ Whetstone Benchmark
+
+Loop content                  Result              MFLOPS      MOPS   Seconds
+
+N1 floating point     -1.13333333333333330        23.368              0.250
+N2 floating point     -1.13333333333333330        24.470              1.670
+N3 if then else        1.00000000000000000                   2.341   13.443
+N4 fixed point        12.00000000000000000                  14.049    6.816
+N5 sin,cos etc.        0.50000000000000000                   8.357    3.026
+N6 floating point      1.00000000000000000         3.731             43.947
+N7 assignments         3.00000000000000000                   1.921   29.240
+N8 exp,sqrt etc.       0.75000000000000000                   2.077    5.445
+
+MWIPS                                             29.277            103.837
+
+---snip---
+
+Lua 5.2:
+
+---snip---
+Calibrate
+       0.13 Seconds          1   Passes (x 100)
+       0.61 Seconds          5   Passes (x 100)
+       3.03 Seconds         25   Passes (x 100)
+
+Use 823  passes (x 100)
+
+          C/C++ Whetstone Benchmark
+
+Loop content                  Result              MFLOPS      MOPS   Seconds
+
+N1 floating point     -1.13333333333333330        29.010              0.545
+N2 floating point     -1.13333333333333330        30.259              3.655
+N3 if then else        1.00000000000000000                   9.828    8.667
+N4 fixed point        12.00000000000000000                  37.692    6.878
+N5 sin,cos etc.        0.50000000000000000                  10.645    6.432
+N6 floating point      1.00000000000000000         9.744             45.557
+N7 assignments         3.00000000000000000                   7.182   21.176
+N8 exp,sqrt etc.       0.75000000000000000                   6.235    4.910
+
+MWIPS                                             84.134             97.820
+
+---snip---
+
+Lua 5.2 luajit2-jon:
+
+---snip---
+Calibrate
+       0.01 Seconds          1   Passes (x 100)
+       0.02 Seconds          5   Passes (x 100)
+       0.10 Seconds         25   Passes (x 100)
+       0.50 Seconds        125   Passes (x 100)
+       2.52 Seconds        625   Passes (x 100)
+
+Use 3000  passes (x 100)
+
+          C/C++ Whetstone Benchmark
+
+Loop content                  Result              MFLOPS      MOPS   Seconds
+
+N1 floating point     -1.13333333333333330       900.028              0.064
+N2 floating point     -1.13333333333333330       649.945              0.620
+N3 if then else        1.00000000000000000                1923.350    0.161
+N4 fixed point        12.00000000000000000                 874.345    1.081
+N5 sin,cos etc.        0.50000000000000000                  73.024    3.418
+N6 floating point      1.00000000000000000       506.250              3.196
+N7 assignments         3.00000000000000000                 480.849    1.153
+N8 exp,sqrt etc.       0.75000000000000000                  46.132    2.419
+
+MWIPS                                           2476.634             12.113
+
+---snip---
+
+Lua 5.2 luajit2-joff:
+
+---snip---
+Calibrate
+       0.07 Seconds          1   Passes (x 100)
+       0.32 Seconds          5   Passes (x 100)
+       1.61 Seconds         25   Passes (x 100)
+       8.05 Seconds        125   Passes (x 100)
+
+Use 1552  passes (x 100)
+
+          C/C++ Whetstone Benchmark
+
+Loop content                  Result              MFLOPS      MOPS   Seconds
+
+N1 floating point     -1.13333333333333330        54.483              0.547
+N2 floating point     -1.13333333333333330        53.084              3.929
+N3 if then else        1.00000000000000000                  18.284    8.785
+N4 fixed point        12.00000000000000000                  72.713    6.723
+N5 sin,cos etc.        0.50000000000000000                  18.408    7.015
+N6 floating point      1.00000000000000000        18.520             45.203
+N7 assignments         3.00000000000000000                  12.444   23.048
+N8 exp,sqrt etc.       0.75000000000000000                  12.659    4.561
+
+MWIPS                                            155.494             99.811
+
+---snip---
+
+Node Javascript:
+
+---snip---
+Calibrate
+       0.10 Seconds          1   Passes (x 100)
+       0.47 Seconds          5   Passes (x 100)
+       2.34 Seconds         25   Passes (x 100)
+
+Use 1070  passes (x 100)
+
+          C/C++ Whetstone Benchmark
+
+Loop content                  Result              MFLOPS      MOPS   Seconds
+
+N1 floating point     -1.13333333333333330        70.164              0.293
+N2 floating point     -1.13333333333333330        66.455              2.164
+N3 if then else        1.00000000000000000                  23.463    4.720
+N4 fixed point        12.00000000000000000                 110.472    3.051
+N5 sin,cos etc.        0.50000000000000000                   5.710   15.592
+N6 floating point      1.00000000000000000        15.080             38.273
+N7 assignments         3.00000000000000000                   9.395   21.046
+N8 exp,sqrt etc.       0.75000000000000000                   2.850   13.968
+
+MWIPS                                            107.964             99.107
+
+---snip---
+
+Perl:
+
+---snip---
+Calibrate
+       3.67 Seconds          1   Passes (x 100)
+
+Use 27  passes (x 100)
+
+          C/C++ Whetstone Benchmark
+
+Loop content                  Result              MFLOPS      MOPS   Seconds
+
+N1 floating point     -1.13333333333333330         3.975              0.130
+N2 floating point     -1.13333333333333330         4.492              0.808
+N3 if then else        1.00000000000000000                   0.332    8.417
+N4 fixed point        12.00000000000000000                   1.744    4.877
+N5 sin,cos etc.        0.50000000000000000                   1.249    1.799
+N6 floating point      1.00000000000000000         0.321             45.309
+N7 assignments         3.00000000000000000                   0.154   32.310
+N8 exp,sqrt etc.       0.75000000000000000                   0.196    5.126
+
+MWIPS                                              2.733             98.777
+
+---snip---
+
+# $Id: README.benchmarks 86 2013-03-14 22:53:40Z dtrg $
+# $HeadURL: https://cluecc.svn.sourceforge.net/svnroot/cluecc/clue/README.benchmarks $
+# $LastChangedDate: 2008-07-10 23:17:44 +0100 (Thu, 10 Jul 2008) $
